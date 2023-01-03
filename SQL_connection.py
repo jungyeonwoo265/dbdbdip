@@ -14,10 +14,10 @@ class Main(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.setupUi(self)
         self.conn = p.connect(host='localhost', port=3306, user='root', password='00000000',
                          db='3Team', charset='utf8')
         self.c = self.conn.cursor()
+        self.pushbutton_search.clicked.connect(self.Search)
 
 
     def cellclicked(self,row,column):
@@ -25,21 +25,42 @@ class Main(QMainWindow, form_class):
         self.column = column
 
     def Search(self):
-        self.tableWidget.clearContents()
+        self.table.clearContents()
         Searchlist =[]
-        searchtext = self.lineEdit.text()
-        self.c.execute(f'SELECT * FROM elementary WHERE 상호명 LIKE "%{searchtext}%"')
-        Searchlist = self.c.fetchall()
+        nation = self.combo_nation.currentText()
+        year = self.combo_year.currentText()
+        self.c.execute(f'SELECT * FROM elementary')
+        self.Header = list(map(str, self.c.fetchone()))
 
+
+        if year == '선택안함':
+            self.c.execute(f'SELECT * FROM elementary')
+        if nation == '선택안함':
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary')
+        else:
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary WHERE 행정구역별 LIKE "%{nation}%"')
+            print(Searchlist)
+        Searchlist = self.c.fetchall()
+        print(Searchlist)
 
         # 테이블 위젯의 행과 열에 데이터 넣어줌
-        self.tableWidget.setRowCount(len(Searchlist))
-        self.tableWidget.setColumnCount(len(Searchlist[0]))
+        self.table.setRowCount(len(Searchlist))
+        self.table.setColumnCount(len(Searchlist[0]))
+        print(len(Searchlist[0]))
         for i in range(len(Searchlist)):
-            for j in range(len(Searchlist[i])):
-                # i번째 줄의 j번째 칸에 데이터를 넣어줌
-                self.tableWidget.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
-        self.tableWidget.setHorizontalHeaderLabels(self.Header)
+            if Searchlist[i][0] == "행정구역별":
+                continue
+            else:
+                for j in range(len(Searchlist[i])):
+                    # i번째 줄의 j번째 칸에 데이터를 넣어줌
+                    if type(Searchlist) == str :
+                        self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
+                    else :
+                        self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
+        self.table.setHorizontalHeaderLabels(self.Header)
+
+
+
     def Search2(self):
         self.tableWidget.clearContents()
         Searchlist =[]
