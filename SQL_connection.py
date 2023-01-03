@@ -17,32 +17,44 @@ class Main(QMainWindow, form_class):
         self.conn = p.connect(host='localhost', port=3306, user='root', password='00000000',
                          db='3Team', charset='utf8')
         self.c = self.conn.cursor()
-        self.pushbutton_search.clicked.connect(self.Search)
-
+        self.research_btn.clicked.connect(self.searchmethod)
 
     def cellclicked(self,row,column):
         self.row = row
         self.column = column
-
-    def Search(self):
+    def searchmethod(self):
+        checkbox_count = 0
+        if self.checkBox.isChecked() == True:
+            checkbox_count +=1
+            self.tablename = 'elementary'
+        if self.checkBox_2.isChecked() == True:
+            checkbox_count += 1
+            self.tablename = 'new_marry'
+        if self.checkBox_3.isChecked() == True:
+            checkbox_count += 1
+            self.tablename = 'solo'
+        if checkbox_count ==1:
+            self.search()
+        elif checkbox_count == 2:
+            self.search2()
+    def search2(self):
         self.table.clearContents()
         Searchlist =[]
         nation = self.combo_nation.currentText()
         year = self.combo_year.currentText()
-        self.c.execute(f'SELECT * FROM elementary')
+        self.c.execute(f'SELECT * FROM {self.tablename}')
         self.Header = list(map(str, self.c.fetchone()))
         if year == '선택안함' and nation =='선택안함':
-            self.c.execute(f'SELECT * FROM elementary WHERE 행정구역별 != "행정구역별"')
+            self.c.execute(f'SELECT * FROM {self.tablename} WHERE 행정구역별 != "행정구역별"')
         elif nation == '선택안함':
-            self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary')
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename}')
             self.Header = ['행정구역별', year]
         elif year == '선택안함':
-            self.c.execute(f'SELECT* FROM elementary WHERE 행정구역별 LIKE "%{nation}%"')
+            self.c.execute(f'SELECT* FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
         else:
-            self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary WHERE 행정구역별 LIKE "%{nation}%"')
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
             self.Header = ['행정구역별',year]
         Searchlist = self.c.fetchall()
-
 
         # 테이블 위젯의 행과 열에 데이터 넣어줌
         self.table.setRowCount(len(Searchlist))
@@ -56,6 +68,37 @@ class Main(QMainWindow, form_class):
                 else :
                     self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
 
+        self.table.setHorizontalHeaderLabels(self.Header)
+    def search(self):
+        self.table.clearContents()
+        Searchlist =[]
+        nation = self.combo_nation.currentText()
+        year = self.combo_year.currentText()
+        self.c.execute(f'SELECT * FROM {self.tablename}')
+        self.Header = list(map(str, self.c.fetchone()))
+        if year == '선택안함' and nation =='선택안함':
+            self.c.execute(f'SELECT * FROM {self.tablename} WHERE 행정구역별 != "행정구역별"')
+        elif nation == '선택안함':
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename}')
+            self.Header = ['행정구역별', year]
+        elif year == '선택안함':
+            self.c.execute(f'SELECT* FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
+        else:
+            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
+            self.Header = ['행정구역별',year]
+        Searchlist = self.c.fetchall()
+
+        # 테이블 위젯의 행과 열에 데이터 넣어줌
+        self.table.setRowCount(len(Searchlist))
+        self.table.setColumnCount(len(Searchlist[0]))
+        print(Searchlist)
+        for i in range(len(Searchlist)):
+            for j in range(len(Searchlist[i])):
+                # i번째 줄의 j번째 칸에 데이터를 넣어줌
+                if type(Searchlist) == str :
+                    self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
+                else :
+                    self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
 
         self.table.setHorizontalHeaderLabels(self.Header)
 
