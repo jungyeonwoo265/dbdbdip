@@ -23,7 +23,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="research_btn">
    <property name="geometry">
     <rect>
      <x>760</x>
@@ -36,35 +36,12 @@
     <string>검색</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>435</x>
-     <y>80</y>
-     <width>201</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>초등학교 학생 수</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="liner">
-   <property name="geometry">
-    <rect>
-     <x>292</x>
-     <y>269</y>
-     <width>421</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QComboBox" name="combo_year">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>140</x>
      <y>270</y>
-     <width>76</width>
+     <width>111</width>
      <height>31</height>
     </rect>
    </property>
@@ -102,9 +79,9 @@
   <widget class="QComboBox" name="combo_nation">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>140</x>
      <y>220</y>
-     <width>76</width>
+     <width>111</width>
      <height>31</height>
     </rect>
    </property>
@@ -207,7 +184,7 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>60</x>
      <y>230</y>
      <width>56</width>
      <height>12</height>
@@ -220,7 +197,7 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>60</x>
      <y>280</y>
      <width>56</width>
      <height>12</height>
@@ -241,6 +218,77 @@
    </property>
    <property name="text">
     <string>추가</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>30</y>
+     <width>56</width>
+     <height>12</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>DB선택</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>50</y>
+     <width>201</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>초등학교 학생수</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>850</x>
+     <y>310</y>
+     <width>56</width>
+     <height>12</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>(명(%))</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_2">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>50</y>
+     <width>201</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>1인가구비율</string>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_3">
+   <property name="geometry">
+    <rect>
+     <x>740</x>
+     <y>50</y>
+     <width>201</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>신혼부부수</string>
    </property>
   </widget>
  </widget>
