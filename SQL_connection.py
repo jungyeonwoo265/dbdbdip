@@ -48,6 +48,8 @@ class Main(QMainWindow, form_class):
                 self.tablename1 = 'elementary'
                 self.tablename2 = 'solo'
             self.search2()
+        else :
+            self.search3()
     def search2(self):
         self.table.clearContents()
         nation = self.combo_nation.currentText()
@@ -74,6 +76,34 @@ class Main(QMainWindow, form_class):
                 else :
                     self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
         self.table.setHorizontalHeaderLabels(self.Header)
+
+    def search3(self):
+        self.table.clearContents()
+        nation = self.combo_nation.currentText()
+        year = self.combo_year.currentText()
+        if nation == '선택안함':
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년,C.{year}년 FROM elementary AS A \
+                            INNER JOIN new_marry AS B ON A.행정구역별 = B.행정구역별 INNER JOIN solo AS C \
+                            ON B.행정구역별 = C.행정구역별 WHERE A.행정구역별 !="행정구역별"')
+        else:
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년,C.{year}년 FROM elementary AS A \
+                            INNER JOIN new_marry AS B ON A.행정구역별 = B.행정구역별 INNER JOIN solo AS C \
+                            ON B.행정구역별 = C.행정구역별 WHERE A.행정구역별 = "{nation}"')
+
+        Searchlist = self.c.fetchall()
+
+        # 테이블 위젯의 행과 열에 데이터 넣어줌
+        self.table.setRowCount(len(Searchlist))
+        self.table.setColumnCount(len(Searchlist[0]))
+        print(Searchlist)
+        for i in range(len(Searchlist)):
+            for j in range(len(Searchlist[i])):
+                # i번째 줄의 j번째 칸에 데이터를 넣어줌
+                if type(Searchlist) == str :
+                    self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
+                else :
+                    self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
+        # self.table.setHorizontalHeaderLabels(self.Header)
     def search(self):
         self.table.clearContents()
         Searchlist =[]
