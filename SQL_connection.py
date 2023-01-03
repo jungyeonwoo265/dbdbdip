@@ -31,32 +31,32 @@ class Main(QMainWindow, form_class):
         year = self.combo_year.currentText()
         self.c.execute(f'SELECT * FROM elementary')
         self.Header = list(map(str, self.c.fetchone()))
-
-
-        if year == '선택안함':
-            self.c.execute(f'SELECT * FROM elementary')
-        if nation == '선택안함':
+        if year == '선택안함' and nation =='선택안함':
+            self.c.execute(f'SELECT * FROM elementary WHERE 행정구역별 != "행정구역별"')
+        elif nation == '선택안함':
             self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary')
+            self.Header = ['행정구역별', year]
+        elif year == '선택안함':
+            self.c.execute(f'SELECT* FROM elementary WHERE 행정구역별 LIKE "%{nation}%"')
         else:
             self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary WHERE 행정구역별 LIKE "%{nation}%"')
-            print(Searchlist)
+            self.Header = ['행정구역별',year]
         Searchlist = self.c.fetchall()
-        print(Searchlist)
+
 
         # 테이블 위젯의 행과 열에 데이터 넣어줌
         self.table.setRowCount(len(Searchlist))
         self.table.setColumnCount(len(Searchlist[0]))
-        print(len(Searchlist[0]))
+        print(Searchlist)
         for i in range(len(Searchlist)):
-            if Searchlist[i][0] == "행정구역별":
-                continue
-            else:
-                for j in range(len(Searchlist[i])):
-                    # i번째 줄의 j번째 칸에 데이터를 넣어줌
-                    if type(Searchlist) == str :
-                        self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
-                    else :
-                        self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
+            for j in range(len(Searchlist[i])):
+                # i번째 줄의 j번째 칸에 데이터를 넣어줌
+                if type(Searchlist) == str :
+                    self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
+                else :
+                    self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
+
+
         self.table.setHorizontalHeaderLabels(self.Header)
 
 
@@ -157,7 +157,7 @@ class Main(QMainWindow, form_class):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
+    print("test")
 
     mainWindow = Main()  # 상동
     mainWindow.show()
