@@ -21,7 +21,8 @@ class check(QMainWindow,form_class):
         self.cursor.execute('SELECT * FROM elementary')
 
         b = self.cursor.fetchall()
-        # self.cursor.close()
+        self.cursor.close()
+        conn.close()
         self.table.setRowCount(len(b))
         self.table.setColumnCount(len(b[0]))
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -43,48 +44,54 @@ class check(QMainWindow,form_class):
     #     for i in range(len(b)):
     #         for j in range(6):
     #             self.table.setItem(i,j,QTableWidgetItem(str(b[i][j])))
-    # def update(self):
-        # year=['2016년','2017년','2018년','2019년','2020년']
-        # nation=[]
-        # self.Header = ['행정구역별', year]
-        #
-        # print("11")
-        # b = self.cursor.fetchall()
-        # print("22")
-        # self.ro = self.table.currentIndex().row()
-        # self.col = self.table.currentIndex().column()
-        # c = b[self.ro][self.col]
+    def update(self):
+        conn = p.connect(host='localhost', port=3306, user='root', password='1234',
+                         db='pro', charset='utf8')
+
+        self.cursor = conn.cursor()
+        self.cursor.execute('SELECT * FROM elementary')
+        b = self.cursor.fetchall()
+        self.ro = self.table.currentIndex().row()
+        self.col = self.table.currentIndex().column()
+        money = b[self.ro][self.col]
+        print(self.ro)
+        print(b[self.ro][0])
+        # print(d.text())
         # print(c)
+        f = self.table.selectedItems()
+        for i in f:
+            print(i.text())
+        print(f[0].text(), "!!!!!!!!!!")
+        print(b[self.ro][0], "@@@@")
+        sung=int(self.liner.text())
+        year=['2016년','2017년','2018년','2019년','2020년']
+        self.cursor.execute("set SQL_SAFE_UPDATES = 0")
+        self.cursor.execute(f'update elementary set 2018년= {sung} WHERE 행정구역별 ="{b[self.ro][0]}"')
+        self.cursor.execute("set SQL_SAFE_UPDATES = 1")
+        conn.commit()
+        conn.close()
+        # self.change_btn.connect(self.)
 
-        # a=self.table.currentRow()
-        # d=self.table.currentColumn()
-        # print(b[0])
-        # print(b[a][d])
-        # print(c)
-        # print(a,d)
-        # f=self.selecteditems()
+        print("sunccess")
 
-        # e=self.sele
-        # self.horizontalHeaderItem(d)
-        # self.table.setHorizontalHeaderLabels(self.Header)
-
-
-
-        # a=self.table.currentitem()
-        # print(a.text())
-
-        # self.cursor.execute('SELECT * FROM elementary')
-        # self.cursor.execute(f'SELECT 행정구역별 FROM elementary WHERE 행정구역별 ="{nation}"')
-        # self.cursor.execute(f'update elementary set 행정구역별='{c}'  WHERE 행정구역별 ="{text}"')
-
-
+        self.table.setRowCount(len(b))
+        self.table.setColumnCount(len(b[0]))
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                self.table.setItem(i, j, QTableWidgetItem(str(b[i][j])))
 
     def research(self):
+        conn = p.connect(host='localhost', port=3306, user='root', password='1234',
+                         db='pro', charset='utf8')
+
+        self.cursor = conn.cursor()
+
         nation = self.combo_nation.currentText()
         year = self.combo_year.currentText()
         self.Header = ['행정구역별', year]
         # self.Header = list(map(str, self.c.fetchone()))
-        print(year)
+        # print(year)
         if nation=="선택안함" and year=="선택안함":
             self.cursor.execute('SELECT * FROM elementary')
         # 지역 만 선택
@@ -97,7 +104,32 @@ class check(QMainWindow,form_class):
         else:
             self.cursor.execute(f'SELECT 행정구역별,{year}년 FROM elementary WHERE 행정구역별 ="{nation}"')
 
+
+        #
         b = self.cursor.fetchall()
+        self.ro = self.table.currentIndex().row()
+        self.col = self.table.currentIndex().column()
+        money = b[self.ro][self.col]
+        print(self.ro)
+        print(b[self.ro][0])
+        # print(d.text())
+        # print(c)
+        f=self.table.selectedItems()
+        for i in f:
+            print(i.text())
+        print(f[0].text(),"!!!!!!!!!!")
+        print(b[self.ro][0],"@@@@")
+        # self.cursor.execute(f'update elementary set 2018년="{f[0].text()}" WHERE 행정구역별 ="{b[self.ro][0]}"')
+        print("sunccess")
+        self.cursor.close()
+        conn.close()
+
+        # a=self.table.currentRow()
+        # d=self.table.currentColumn()
+        # print(b[0])
+        # print(b[a][d])
+
+
         # self.cursor.close()
         self.table.setRowCount(len(b))
         self.table.setColumnCount(len(b[0]))

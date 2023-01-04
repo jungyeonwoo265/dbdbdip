@@ -207,7 +207,7 @@
     <string>연도검색</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="change_btn">
    <property name="geometry">
     <rect>
      <x>760</x>
@@ -217,7 +217,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>추가</string>
+    <string>수정</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
@@ -289,6 +289,16 @@
    </property>
    <property name="text">
     <string>신혼부부수</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="liner">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>270</y>
+     <width>401</width>
+     <height>31</height>
+    </rect>
    </property>
   </widget>
  </widget>
