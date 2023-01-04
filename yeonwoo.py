@@ -3,6 +3,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
 
 form_class = uic.loadUiType("inquiry.ui")[0]
 
@@ -15,6 +16,9 @@ class WindowClass(QMainWindow, form_class):
         db = p.connect(host='127.0.0.1', port=3306, user='root', password='0000', db='3team', charset='utf8')
         self.c = db.cursor()
 
+        font_path = "c:\\windows\\Fonts\\gulim.ttc"
+        font = font_manager.FontProperties(fname = font_path).get_name()
+        rc('font', family = font)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.csv = list()
@@ -23,6 +27,7 @@ class WindowClass(QMainWindow, form_class):
         self.where = ''
         self.join = ''
         self.table_header1()
+        self.title = self.checkBox.text()
 
         self.research_btn.clicked.connect(self.search)
         self.checkBox.stateChanged.connect(self.choice_db)
@@ -192,32 +197,58 @@ class WindowClass(QMainWindow, form_class):
         elif self.checkBox.isChecked():
             self.db = str
             self.db = 'elementary'
+            self.title = self.checkBox.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         elif self.checkBox_2.isChecked():
             self.db = str
             self.db = 'solo'
+            self.title = self.checkBox_2.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         elif self.checkBox_3.isChecked():
             self.db = str
             self.db = 'new_marry'
+            self.title = self.checkBox_3.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         else:
             self.checkBox.toggle()
             self.db = str
             self.db = 'elementary'
+            self.title = self.checkBox.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
 
     def graph(self):
-        print('그래프')
-        ratio = [34, 32, 16, 18]
-        labels = ['Apple', 'Banana', 'Melon', 'Grapes']
+        self.choice_db()
+        city = self.combo_nation.currentText()
+        year = self.combo_year.currentText()
+        label_year = list()
+        label_peopel = list()
+        if type(self.db) == str:
+            if city == '선택안함':
+                city = '전국'
+            self.c.execute(f'select * from {self.db}')
+            total = self.c.fetchall()
+            self.c.execute(f'select * from {self.db} where 행정구역별 = "{city}"')
+            num_list = self.c.fetchall()
+            for i in range(len(total[0])):
+                if i != 0:
+                    label_year.append(total[0][i])
+            for i in range(len(num_list[0])):
+                if i != 0:
+                    label_peopel.append(num_list[0][i])
+            plt.pie(label_peopel, labels=label_year, autopct='%.1f%%', startangle=90, counterclock=False)
+            plt.title(f'{self.title} ({city})' )
+            plt.show()
 
-        plt.pie(ratio, labels=labels, autopct='%.1f%%')
-        plt.show()
+        else:
+            ratio = [34, 32, 16, 18]
+            labels = ['Apple', 'Banana', 'Melon', 'Grapes']
+
+            plt.pie(ratio, labels=labels, autopct='%.1f%%')
+            plt.show()
 
 
 if __name__ == "__main__":
