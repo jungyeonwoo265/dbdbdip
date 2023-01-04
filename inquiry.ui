@@ -252,14 +252,14 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>850</x>
+     <x>785</x>
      <y>310</y>
-     <width>80</width>
-     <height>15</height>
+     <width>121</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>단위: 명(%)</string>
+    <string>단위 : 명 / % / 건</string>
    </property>
   </widget>
   <widget class="QCheckBox" name="checkBox_2">
@@ -288,7 +288,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>신혼부부수</string>
+    <string>혼인건수</string>
    </property>
   </widget>
  </widget>
