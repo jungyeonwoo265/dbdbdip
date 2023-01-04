@@ -14,7 +14,7 @@ class Main(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.conn = p.connect(host='localhost', port=3306, user='root', password='00000000',
+        self.conn = p.connect(host='localhost', port=3306, user='root', password='0000',
                          db='3Team', charset='utf8')
         self.c = self.conn.cursor()
         self.research_btn.clicked.connect(self.searchmethod)
@@ -24,6 +24,8 @@ class Main(QMainWindow, form_class):
         self.column = column
     def searchmethod(self):
         checkbox_count = 0
+        self.tablename1=''
+        self.tablename2=''
         if self.checkBox.isChecked() == True:
             checkbox_count +=1
             self.tablename = 'elementary'
@@ -36,24 +38,30 @@ class Main(QMainWindow, form_class):
         if checkbox_count ==1:
             self.search()
         elif checkbox_count == 2:
+            if self.checkBox.isChecked() == True and self.checkBox_2.isChecked()==True:
+                self.tablename1='elementary'
+                self.tablename2='new_marry'
+            elif self.checkBox_2.isChecked() == True and self.checkBox_3.isChecked()==True:
+                self.tablename1 = 'new_marry'
+                self.tablename2 = 'solo'
+            elif self.checkBox.isChecked() == True and self.checkBox_3.isChecked()==True:
+                self.tablename1 = 'elementary'
+                self.tablename2 = 'solo'
             self.search2()
+        else :
+            self.search3()
     def search2(self):
         self.table.clearContents()
-        Searchlist =[]
         nation = self.combo_nation.currentText()
         year = self.combo_year.currentText()
-        self.c.execute(f'SELECT * FROM {self.tablename}')
-        self.Header = list(map(str, self.c.fetchone()))
-        if year == '선택안함' and nation =='선택안함':
-            self.c.execute(f'SELECT * FROM {self.tablename} WHERE 행정구역별 != "행정구역별"')
-        elif nation == '선택안함':
-            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename}')
-            self.Header = ['행정구역별', year]
-        elif year == '선택안함':
-            self.c.execute(f'SELECT* FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
+        if nation == '선택안함':
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년 FROM {self.tablename1} AS A \
+                            JOIN {self.tablename2} AS B ON A.행정구역별 = B.행정구역별 WHERE A.행정구역별 !="행정구역별"')
+            self.Header = ['행정구역별', year]  ## 수정요망 테이블 이름에 맞게 TEXT 들어갈 예정
         else:
-            self.c.execute(f'SELECT 행정구역별,{year}년 FROM {self.tablename} WHERE 행정구역별 LIKE "%{nation}%"')
-            self.Header = ['행정구역별',year]
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년 FROM {self.tablename1} AS A \
+                            JOIN {self.tablename2} AS B ON A.행정구역별 = B.행정구역별 WHERE A.행정구역별 = "{nation}"')
+            self.Header = ['행정구역별',year] ## 수정요망 테이블 이름에 맞게 TEXT 들어갈 예정
         Searchlist = self.c.fetchall()
 
         # 테이블 위젯의 행과 열에 데이터 넣어줌
@@ -67,8 +75,35 @@ class Main(QMainWindow, form_class):
                     self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
                 else :
                     self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
-
         self.table.setHorizontalHeaderLabels(self.Header)
+
+    def search3(self):
+        self.table.clearContents()
+        nation = self.combo_nation.currentText()
+        year = self.combo_year.currentText()
+        if nation == '선택안함':
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년,C.{year}년 FROM elementary AS A \
+                            INNER JOIN new_marry AS B ON A.행정구역별 = B.행정구역별 INNER JOIN solo AS C \
+                            ON B.행정구역별 = C.행정구역별 WHERE A.행정구역별 !="행정구역별"')
+        else:
+            self.c.execute(f'SELECT A.행정구역별,A.{year}년,B.{year}년,C.{year}년 FROM elementary AS A \
+                            INNER JOIN new_marry AS B ON A.행정구역별 = B.행정구역별 INNER JOIN solo AS C \
+                            ON B.행정구역별 = C.행정구역별 WHERE A.행정구역별 = "{nation}"')
+
+        Searchlist = self.c.fetchall()
+
+        # 테이블 위젯의 행과 열에 데이터 넣어줌
+        self.table.setRowCount(len(Searchlist))
+        self.table.setColumnCount(len(Searchlist[0]))
+        print(Searchlist)
+        for i in range(len(Searchlist)):
+            for j in range(len(Searchlist[i])):
+                # i번째 줄의 j번째 칸에 데이터를 넣어줌
+                if type(Searchlist) == str :
+                    self.table.setItem(i, j, QTableWidgetItem(Searchlist[i][j]))
+                else :
+                    self.table.setItem(i, j, QTableWidgetItem(str(Searchlist[i][j])))
+        # self.table.setHorizontalHeaderLabels(self.Header)
     def search(self):
         self.table.clearContents()
         Searchlist =[]
