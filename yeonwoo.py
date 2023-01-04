@@ -2,6 +2,7 @@ import pymysql as p
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
+import matplotlib.pyplot as plt
 
 form_class = uic.loadUiType("inquiry.ui")[0]
 
@@ -27,6 +28,7 @@ class WindowClass(QMainWindow, form_class):
         self.checkBox.stateChanged.connect(self.choice_db)
         self.checkBox_2.stateChanged.connect(self.choice_db)
         self.checkBox_3.stateChanged.connect(self.choice_db)
+        self.btn_graph.clicked.connect(self.graph)
 
     def search(self):
         if type(self.db) == str:
@@ -203,10 +205,19 @@ class WindowClass(QMainWindow, form_class):
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         else:
+            self.checkBox.toggle()
             self.db = str
             self.db = 'elementary'
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
+
+    def graph(self):
+        print('그래프')
+        ratio = [34, 32, 16, 18]
+        labels = ['Apple', 'Banana', 'Melon', 'Grapes']
+
+        plt.pie(ratio, labels=labels, autopct='%.1f%%')
+        plt.show()
 
 
 if __name__ == "__main__":
