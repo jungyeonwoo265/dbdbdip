@@ -213,7 +213,6 @@ class WindowClass(QMainWindow, form_class):
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         else:
-            self.checkBox.toggle()
             self.db = str
             self.db = 'elementary'
             self.title = self.checkBox.text()
