@@ -20,15 +20,15 @@ class check(QMainWindow,form_class):
         self.cursor = conn.cursor()
         self.cursor.execute('SELECT * FROM elementary')
 
-        b = self.cursor.fetchall()
+        self.b = self.cursor.fetchall()
         self.cursor.close()
         conn.close()
-        self.table.setRowCount(len(b))
-        self.table.setColumnCount(len(b[0]))
+        self.table.setRowCount(len(self.b))
+        self.table.setColumnCount(len(self.b[0]))
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        for i in range(len(b)):
-            for j in range(len(b[0])):
-                self.table.setItem(i, j, QTableWidgetItem(str(b[i][j])))
+        for i in range(len(self.b)):
+            for j in range(len(self.b[0])):
+                self.table.setItem(i, j, QTableWidgetItem(str(self.b[i][j])))
 
 
 
@@ -49,24 +49,33 @@ class check(QMainWindow,form_class):
                          db='pro', charset='utf8')
 
         self.cursor = conn.cursor()
-        self.cursor.execute('SELECT * FROM elementary')
-        b = self.cursor.fetchall()
+        # self.cursor.execute('SELECT * FROM elementary')
+        # self.b = self.cursor.fetchall()
         self.ro = self.table.currentIndex().row()
         self.col = self.table.currentIndex().column()
-        money = b[self.ro][self.col]
+        money = self.b[self.ro][self.col]
         print(self.ro)
-        print(b[self.ro][0])
+        print(self.b[self.ro][0])
         # print(d.text())
         # print(c)
         f = self.table.selectedItems()
         for i in f:
             print(i.text())
         print(f[0].text(), "!!!!!!!!!!")
-        print(b[self.ro][0], "@@@@")
+        print(self.b[self.ro][0], "@@@@")
         sung=int(self.liner.text())
-        year=['2016년','2017년','2018년','2019년','2020년']
+        # year=['2016년','2017년','2018년','2019년','2020년']
         self.cursor.execute("set SQL_SAFE_UPDATES = 0")
-        self.cursor.execute(f'update elementary set 2018년= {sung} WHERE 행정구역별 ="{b[self.ro][0]}"')
+        year = self.combo_year.currentText()
+        if year == "사용안함":
+            self.cursor.execute(f'update elementary set {self.b[0][self.col]}년 = {sung} WHERE 행정구역별 ="{self.b[self.ro][0]}"')
+        else:
+            self.cursor.execute(f'update elementary set {year}년 = {sung} WHERE 행정구역별 ="{self.b[self.ro][0]}"')
+
+        print(self.b[0])
+        print(self.b[0][self.col])
+        print("sunssssss")
+        # b[0]
         self.cursor.execute("set SQL_SAFE_UPDATES = 1")
         conn.commit()
         conn.close()
@@ -74,14 +83,15 @@ class check(QMainWindow,form_class):
 
         print("sunccess")
 
-        self.table.setRowCount(len(b))
-        self.table.setColumnCount(len(b[0]))
+        self.table.setRowCount(len(self.b))
+        self.table.setColumnCount(len(self.b[0]))
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        for i in range(len(b)):
-            for j in range(len(b[0])):
-                self.table.setItem(i, j, QTableWidgetItem(str(b[i][j])))
+        for i in range(len(self.b)):
+            for j in range(len(self.b[0])):
+                self.table.setItem(i, j, QTableWidgetItem(str(self.b[i][j])))
 
     def research(self):
+
         conn = p.connect(host='localhost', port=3306, user='root', password='1234',
                          db='pro', charset='utf8')
 
@@ -105,50 +115,22 @@ class check(QMainWindow,form_class):
             self.cursor.execute(f'SELECT 행정구역별,{year}년 FROM elementary WHERE 행정구역별 ="{nation}"')
 
 
-        #
-        b = self.cursor.fetchall()
-        self.ro = self.table.currentIndex().row()
-        self.col = self.table.currentIndex().column()
-        money = b[self.ro][self.col]
-        print(self.ro)
-        print(b[self.ro][0])
-        # print(d.text())
-        # print(c)
-        f=self.table.selectedItems()
-        for i in f:
-            print(i.text())
-        print(f[0].text(),"!!!!!!!!!!")
-        print(b[self.ro][0],"@@@@")
-        # self.cursor.execute(f'update elementary set 2018년="{f[0].text()}" WHERE 행정구역별 ="{b[self.ro][0]}"')
+
+        self.b = self.cursor.fetchall()
         print("sunccess")
-        self.cursor.close()
+        print(self.b[0])
+        # print(b[0][self.col],"^^^^")
+        # print(b[self.ro][0],"****")
+
         conn.close()
 
-        # a=self.table.currentRow()
-        # d=self.table.currentColumn()
-        # print(b[0])
-        # print(b[a][d])
-
-
-        # self.cursor.close()
-        self.table.setRowCount(len(b))
-        self.table.setColumnCount(len(b[0]))
+        self.table.setRowCount(len(self.b))
+        self.table.setColumnCount(len(self.b[0]))
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        for i in range(len(b)):
-            for j in range(len(b[0])):
-                self.table.setItem(i,j,QTableWidgetItem(str(b[i][j])))
+        for i in range(len(self.b)):
+            for j in range(len(self.b[0])):
+                self.table.setItem(i,j,QTableWidgetItem(str(self.b[i][j])))
         self.table.setHorizontalHeaderLabels(self.Header)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
