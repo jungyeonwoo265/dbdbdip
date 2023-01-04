@@ -1,9 +1,7 @@
-#test.
 import pymysql as p
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-import csv
 
 form_class = uic.loadUiType("inquiry.ui")[0]
 class check(QMainWindow,form_class):
@@ -29,21 +27,14 @@ class check(QMainWindow,form_class):
         for i in range(len(self.b)):
             for j in range(len(self.b[0])):
                 self.table.setItem(i, j, QTableWidgetItem(str(self.b[i][j])))
+    # def delete(self):
+    #     print("1")
+    def add_file(self):
+        print("2")
+        # ALTER TABLE `pro`.`elementary`
 
 
 
-    # def boom(self):
-    #     conn = p.connect(host='localhost', port=3306, user='root', password='1234',
-    #                           db='pro', charset='utf8')
-    #     self.cursor = self.conn.cursor()
-    #     self.cursor.execute('SELECT * FROM elementary')
-    #     b = self.cursor.fetchall()
-    #     self.table.setRowCount(len(b))
-    #     self.table.setColumnCount(6)
-    #     self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-    #     for i in range(len(b)):
-    #         for j in range(6):
-    #             self.table.setItem(i,j,QTableWidgetItem(str(b[i][j])))
     def update(self):
         conn = p.connect(host='localhost', port=3306, user='root', password='1234',
                          db='pro', charset='utf8')
@@ -67,21 +58,18 @@ class check(QMainWindow,form_class):
         # year=['2016년','2017년','2018년','2019년','2020년']
         self.cursor.execute("set SQL_SAFE_UPDATES = 0")
         year = self.combo_year.currentText()
-        if year == "사용안함":
+        if year == "선택안함":
             self.cursor.execute(f'update elementary set {self.b[0][self.col]}년 = {sung} WHERE 행정구역별 ="{self.b[self.ro][0]}"')
         else:
             self.cursor.execute(f'update elementary set {year}년 = {sung} WHERE 행정구역별 ="{self.b[self.ro][0]}"')
 
-        print(self.b[0])
-        print(self.b[0][self.col])
         print("sunssssss")
-        # b[0]
         self.cursor.execute("set SQL_SAFE_UPDATES = 1")
         conn.commit()
         conn.close()
         # self.change_btn.connect(self.)
 
-        print("sunccess")
+        # print(self.ro,self.col,"!!!!!!")
 
         self.table.setRowCount(len(self.b))
         self.table.setColumnCount(len(self.b[0]))
