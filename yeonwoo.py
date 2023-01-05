@@ -250,7 +250,7 @@ class WindowClass(QMainWindow, form_class):
         label_value = list()
         label_value2 = list()
         label_value3 = list()
-        wedgeprops = {'width': 0.7, 'edgecolor': 'w', 'linewidth': 5}
+        wedgeprops = {'width': 0.7, 'edgecolor': 'w', 'linewidth': 2}
         if type(self.db) == str:
             if year == '선택안함':
                 year = 2016
@@ -298,7 +298,6 @@ class WindowClass(QMainWindow, form_class):
                 plt.pie(label_list[i], labels=label_city, autopct='%.1f%%', startangle=90,
                         counterclock=False, wedgeprops=wedgeprops)
                 plt.title(f'{self.title[i]} ({year}년)')
-
             plt.show()
 
 
