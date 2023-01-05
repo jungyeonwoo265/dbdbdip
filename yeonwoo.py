@@ -16,25 +16,30 @@ class WindowClass(QMainWindow, form_class):
         db = p.connect(host='127.0.0.1', port=3306, user='root', password='0000', db='3team', charset='utf8')
         self.c = db.cursor()
 
+        # matplotlib 한글 폰트 패치
         font_path = "c:\\windows\\Fonts\\gulim.ttc"
-        font = font_manager.FontProperties(fname = font_path).get_name()
-        rc('font', family = font)
+        font = font_manager.FontProperties(fname=font_path).get_name()
+        rc('font', family=font)
+
+        # 테이블 위젯 수정불가및 헤드 자동 길이 맞춤
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.변수 초기화 및 선언
         self.csv = list()
         self.db = 'elementary'
         self.header = '*'
         self.where = ''
         self.join = ''
-        self.table_header1()
         self.title = self.checkBox.text()
 
+        # 메서드와 시그널 연결
         self.research_btn.clicked.connect(self.search)
         self.checkBox.stateChanged.connect(self.choice_db)
         self.checkBox_2.stateChanged.connect(self.choice_db)
         self.checkBox_3.stateChanged.connect(self.choice_db)
         self.btn_graph.clicked.connect(self.graph)
 
+    # 검색 기능
     def search(self):
         if type(self.db) == str:
             self.condition1()
@@ -43,6 +48,7 @@ class WindowClass(QMainWindow, form_class):
             self.condition2()
             self.multi_search()
 
+    # 1개의 DB를 검색 할때 조건에 따른 SQL 문법 조건 셋팅
     def condition1(self):
         city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
@@ -64,6 +70,7 @@ class WindowClass(QMainWindow, form_class):
             self.where = f'where 행정구역별 = "{city}"'
         self.table_header1()
 
+    # 1개의 DB를 검색 할때 DB의 내용을 불러와
     def single_search(self):
         self.c.execute(f'select {self.header} from {self.db} {self.where};')
         csv_list = self.c.fetchall()
@@ -171,49 +178,66 @@ class WindowClass(QMainWindow, form_class):
         box3 = self.checkBox_3.isChecked()
         if box1 and box2 and box3:
             self.db = list()
+            self.title = list()
             self.db.append('elementary')
             self.db.append('solo')
             self.db.append('new_marry')
+            self.title.append(self.checkBox.text())
+            self.title.append(self.checkBox_2.text())
+            self.title.append(self.checkBox_3.text())
             if self.combo_year.itemText(0) == '선택안함':
                 self.combo_year.removeItem(0)
         elif box1 and box2:
             self.db = list()
+            self.title = list()
             self.db.append('elementary')
             self.db.append('solo')
+            self.title.append(self.checkBox.text())
+            self.title.append(self.checkBox_2.text())
             if self.combo_year.itemText(0) == '선택안함':
                 self.combo_year.removeItem(0)
         elif box1 and box3:
             self.db = list()
+            self.title = list()
             self.db.append('elementary')
             self.db.append('new_marry')
+            self.title.append(self.checkBox.text())
+            self.title.append(self.checkBox_3.text())
             if self.combo_year.itemText(0) == '선택안함':
                 self.combo_year.removeItem(0)
         elif box2 and box3:
             self.db = list()
+            self.title = list()
             self.db.append('solo')
             self.db.append('new_marry')
+            self.title.append(self.checkBox_2.text())
+            self.title.append(self.checkBox_3.text())
             if self.combo_year.itemText(0) == '선택안함':
                 self.combo_year.removeItem(0)
         elif self.checkBox.isChecked():
             self.db = str
+            self.title = str
             self.db = 'elementary'
             self.title = self.checkBox.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         elif self.checkBox_2.isChecked():
             self.db = str
+            self.title = str
             self.db = 'solo'
             self.title = self.checkBox_2.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         elif self.checkBox_3.isChecked():
             self.db = str
+            self.title = str
             self.db = 'new_marry'
             self.title = self.checkBox_3.text()
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
         else:
             self.db = str
+            self.title = str
             self.db = 'elementary'
             self.title = self.checkBox.text()
             if self.combo_year.itemText(0) != '선택안함':
@@ -221,32 +245,60 @@ class WindowClass(QMainWindow, form_class):
 
     def graph(self):
         self.choice_db()
-        city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
-        label_year = list()
-        label_peopel = list()
+        label_city = list()
+        label_value = list()
+        label_value2 = list()
+        label_value3 = list()
+        wedgeprops = {'width': 0.7, 'edgecolor': 'w', 'linewidth': 5}
         if type(self.db) == str:
-            if city == '선택안함':
-                city = '전국'
-            self.c.execute(f'select * from {self.db}')
-            total = self.c.fetchall()
-            self.c.execute(f'select * from {self.db} where 행정구역별 = "{city}"')
+            if year == '선택안함':
+                year = 2016
+            if self.db == 'solo':
+                self.db = 'solo_num'
+            self.c.execute(f'select 행정구역별, {year}년 from {self.db}')
             num_list = self.c.fetchall()
-            for i in range(len(total[0])):
-                if i != 0:
-                    label_year.append(total[0][i])
-            for i in range(len(num_list[0])):
-                if i != 0:
-                    label_peopel.append(num_list[0][i])
-            plt.pie(label_peopel, labels=label_year, autopct='%.1f%%', startangle=90, counterclock=False)
-            plt.title(f'{self.title} ({city})' )
+            for i in range(len(num_list)):
+                if i > 1:
+                    label_city.append(num_list[i][0])
+            for i in range(len(num_list)):
+                if i > 1:
+                    label_value.append(num_list[i][1])
+            plt.pie(label_value, labels=label_city, autopct='%.1f%%', startangle=90,
+                    counterclock=False, wedgeprops=wedgeprops)
+            plt.title(f'{self.title} ({year}년)')
             plt.show()
 
         else:
-            ratio = [34, 32, 16, 18]
-            labels = ['Apple', 'Banana', 'Melon', 'Grapes']
+            if 'solo' in self.db:
+                self.db[self.db.index('solo')] = 'solo_num'
+            self.condition2()
+            self.c.execute(f'select {self.header} from {self.db[0]} {self.join}')
+            num_list = self.c.fetchall()
+            for i in range(len(num_list)):
+                if i > 1:
+                    label_city.append(num_list[i][0])
+            for i in range(len(num_list)):
+                if i > 1:
+                    label_value.append(num_list[i][1])
+            for i in range(len(num_list)):
+                if i > 1:
+                    label_value2.append(num_list[i][2])
+            label_list = [label_value, label_value2]
 
-            plt.pie(ratio, labels=labels, autopct='%.1f%%')
+            if len(self.db) == 3:
+                for i in range(len(num_list)):
+                    if i > 1:
+                        label_value3.append(num_list[i][3])
+                label_list.append(label_value3)
+
+            plt.figure(figsize=(19, 9.5))
+            for i in range(len(label_list)):
+                plt.subplot(1, len(label_list), i+1)
+                plt.pie(label_list[i], labels=label_city, autopct='%.1f%%', startangle=90,
+                        counterclock=False, wedgeprops=wedgeprops)
+                plt.title(f'{self.title[i]} ({year}년)')
+
             plt.show()
 
 
