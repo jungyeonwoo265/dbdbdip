@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import font_manager, rc
 import pandas as pd
-
+import csv
 
 form_class = uic.loadUiType("inquiry.ui")[0]
 
@@ -17,104 +17,160 @@ class check(QMainWindow, form_class):
         self.setupUi(self)
         self.setWindowTitle('초등학교 인원')
         # DB 연결
-        self.conn = p.connect(host='localhost', port=3306, user='root', password='00000000',
-                         db='3teamnew', charset='utf8')
+        self.conn = p.connect(host='localhost', port=3306, user='root', password='1234',
+                              db='3teamnew', charset='utf8')
         self.c = self.conn.cursor()
         font_path = "c:\windows\Fonts\gulim.ttc"
         font = font_manager.FontProperties(fname=font_path).get_name()
         rc('font', family=font)
-        # self.research_btn.clicked.connect(self.research)
         self.table.doubleClicked.connect(self.update)
         self.add_btn.clicked.connect(self.add_col)
         self.back_btn.clicked.connect(self.back)
         self.delete_btn.clicked.connect(self.delete_sel)
         self.stick_btn.clicked.connect(self.stick)
-        ##연우형거 취합하는중
+        # self.변수 초기화
         self.csv = list()
         self.db = 'elementary'
         self.header = '*'
         self.where = ''
         self.join = ''
-        self.table_header1()
         self.title = self.checkBox.text()
+        self.table_header1()
+        # 시그널 로 메서드 연결
         self.research_btn.clicked.connect(self.search)
         self.checkBox.stateChanged.connect(self.choice_db)
         self.checkBox_2.stateChanged.connect(self.choice_db)
         self.checkBox_3.stateChanged.connect(self.choice_db)
         self.btn_graph.clicked.connect(self.graph)
         self.btn_graph_line.clicked.connect(self.graph2)
+        # 수정후 테이블 위젯의 내용을 변화 시킴
+        self.table.doubleClicked.connect(self.search)
+        self.add_btn.clicked.connect(self.search)
+        self.back_btn.clicked.connect(self.search)
+        self.delete_btn.clicked.connect(self.search)
+        # 테이블 위젯 설정(수정 불가, 헤더 길이 셀 값으로 조정)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+    # 행, 열의 기준으로 선택한 셀값을 "-"으로 바꾸는 삭제메서드
     def delete_sel(self):
-        year_list = ['','2016','2017','2018','2019','2020','2021']
-        if len(self.csv_list)>1:
+        year_list = ['', '2016', '2017', '2018', '2019', '2020', '2021']
+        if len(self.csv_list) > 1:
             self.ro = self.table.currentIndex().row() + 1
             self.col = self.table.currentIndex().column()
-        else :
+        else:
             self.ro = self.table.currentIndex().row()
             self.col = self.table.currentIndex().column()
+        # 안전모드 해제하기
         self.c.execute("set SQL_SAFE_UPDATES = 0")
         year = self.combo_year.currentText()
         if year == "선택안함":
-            self.c.execute(f'update elementary set {year_list[self.col]}년 = "-" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
+            self.c.execute(
+                f'update {self.db} set {year_list[self.col]}년 = "-" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
         else:
-            self.c.execute(f'update elementary set {year}년 = "-" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
+            self.c.execute(f'update {self.db} set {year}년 = "-" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
+        # 안전모드 걸기
         self.c.execute("set SQL_SAFE_UPDATES = 1")
         self.conn.commit()
+        QMessageBox.information(self, '삭제 완료', '해당항목이 삭제 됐어요!')
 
+    # 프로그램을 종료시킬 때 자동으로 클로즈하는 메서드
+    def closeEvent(self, e):
+        print("11")
+        self.conn.close()
+
+    # 2021년에 대한 컬럼을 추가시키고 되돌리기 버튼을 클릭시 컬럼을 드랍시키는 메서드
     def back(self):
-        self.c.execute('ALTER TABLE elementary DROP COLUMN `2021년`')
-        self.conn.commit()
-    def add_col(self):
-        self.c.execute('select * from elementary')
+        self.c.execute(f'select * from {self.db}')
         temp_list = self.c.fetchone()
-        if len(temp_list)<7:
-            self.c.execute('ALTER TABLE elementary ADD COLUMN `2021년` TEXT NULL DEFAULT NULL AFTER `2020년`')
-            self.c.execute('update elementary set 2021년=case WHEN 행정구역별="행정구역별" THEN 2021 WHEN 행정구역별="전국" \
+        # 2021년에 대한 컬럼값이 있을 때 드랍하기 위한 조건문
+        if len(temp_list) == 7:
+            self.c.execute(f'ALTER TABLE {self.db} DROP COLUMN `2021년`')
+            self.conn.commit()
+        # 2021년에 대한 컬럼값이 없으면 드랍을 진행하지 않음
+        else:
+            return
+        QMessageBox.information(self, '되돌리기 완료', '2021년이 삭제됐어요!')
+
+    # 2021년 컬럼을 추가시킨후 2021년에 대한 csv자료를 읽어와 21년 열값에 자료정보를 넣어주는 메서드
+    def add_col(self):
+        self.c.execute(f'select * from {self.db}')
+        temp_list = self.c.fetchone()
+        if len(temp_list) < 7 and self.db == 'elementary':
+            self.c.execute(f'set sql_safe_updates=0;')
+            self.c.execute(f'ALTER TABLE {self.db} ADD COLUMN `2021년` TEXT NULL DEFAULT NULL AFTER `2020년`;')
+            # update문을 한개쓰기 위한 CASE문 활용
+            self.c.execute(f'update {self.db} set 2021년=case WHEN 행정구역별="행정구역별" THEN 2021 WHEN 행정구역별="전국" \
             THEN "2672340" WHEN 행정구역별="서울특별시" THEN "399435" WHEN 행정구역별="부산광역시" THEN "153921" WHEN 행정구역별="대구광역시" \
             THEN "121308" WHEN 행정구역별="인천광역시" THEN "155271" WHEN 행정구역별="광주광역시" THEN "84998" WHEN 행정구역별="대전광역시" \
             THEN "77884" WHEN 행정구역별="울산광역시" THEN "66919" WHEN 행정구역별="세종특별자치시" THEN "30726" WHEN 행정구역별="경기도" \
             THEN "763912"  WHEN 행정구역별="강원도" THEN "72373" WHEN 행정구역별="충청북도" THEN "84263" WHEN 행정구역별="충청남도" \
             THEN "118771" WHEN 행정구역별="전라북도" THEN "92914" WHEN 행정구역별="전라남도" THEN "91229" WHEN 행정구역별="경상북도" \
-            THEN "127912" WHEN 행정구역별="경상남도" THEN "189176"  WHEN 행정구역별="제주특별자치도" THEN "41328"  END')
+            THEN "127912" WHEN 행정구역별="경상남도" THEN "189176"  WHEN 행정구역별="제주특별자치도" THEN "41328"  END;')
+        # 업데이트문을 반복문으로 csv자료 2개에 대한 값을 2021년에 넣어주는 방법
+        elif len(temp_list) < 7:
+            self.solcsv = []
+            if self.db == 'solo':
+                f = open("solo_2021.csv", 'r', encoding="UTF-8")
+            else:
+                f = open("new_marry_2021.csv", 'r', encoding="UTF-8")
+            line = csv.reader(f)
+            for i in line:
+                self.solcsv.append(i)
+            f.close()
+            self.c.execute(f'ALTER TABLE {self.db} ADD COLUMN `2021년` TEXT NULL DEFAULT NULL AFTER `2020년`')
+            for i in range(0, len(self.solcsv)):
+                # [i][1]은 해당값 [i][0]은 지역
+                self.c.execute(f'update {self.db} set 2021년={self.solcsv[i][1]} WHERE 행정구역별="{self.solcsv[i][0]}"')
+        self.c.execute(f'set sql_safe_updates=1;')
         self.conn.commit()
+        QMessageBox.information(self, '추가 완료', '2021년이 추가됐어요!')
+
+    # 선택한 행과 열에 바꾸려 하는 값을 라인 에딧에 쓰면 수정해주는 메서드
     def update(self):
         year_list = ['', '2016', '2017', '2018', '2019', '2020', '2021']
-        if len(self.csv_list)>1:
+        if len(self.csv_list) > 1:
             self.ro = self.table.currentIndex().row() + 1
             self.col = self.table.currentIndex().column()
-        else :
+        else:
             self.ro = self.table.currentIndex().row()
             self.col = self.table.currentIndex().column()
-        sung=self.liner.text()
-        # year=['2016년','2017년','2018년','2019년','2020년']
+        sung = self.liner.text()
         self.c.execute("set SQL_SAFE_UPDATES = 0")
+        # 2016~2020년을 나타내는 콤보박스
         year = self.combo_year.currentText()
         if year == "선택안함":
-            self.c.execute(f'update elementary set {year_list[self.col]}년 = "{sung}" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
+            # 선택안함을 클릭시 메서드 내의 리스트(2016~2021)을 활용함
+            self.c.execute(f'update {self.db} set {year_list[self.col]}년 = "{sung}" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
         else:
-            self.c.execute(f'update elementary set {year}년 = "{sung}" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
+            self.c.execute(f'update {self.db} set {year}년 = "{sung}" WHERE 행정구역별 ="{self.csv_list[self.ro][0]}"')
         self.c.execute("set SQL_SAFE_UPDATES = 1")
         self.conn.commit()
-
-
+    # x축에 18개의 지역, y축에 인구수 대비 비율을 가진 3개의 csv를 보여주는 막대그래프
     def stick(self):
-
-        self.c.execute('SELECT * FROM elementary_ratio')
+        year = self.combo_year.currentText()
+        # 연도에 관한 콤보박스를 선택안함으로 할 시 2016년으로 바꿔줌
+        if year == "선택안함":
+            year = '2016'
+        # 3개의 비율에 관한 csv자료를 불러옴
+        self.c.execute(f'SELECT 행정구역별,{year}년 FROM elementary_ratio')
         self.ele = self.c.fetchall()
 
-        self.c.execute('SELECT * FROM new_marry_ratio')
+        self.c.execute(f'SELECT 행정구역별,{year}년 FROM new_marry_ratio')
         self.couple = self.c.fetchall()
 
-        self.c.execute('SELECT * FROM solo')
+        self.c.execute(f'SELECT 행정구역별,{year}년 FROM solo')
         self.individual = self.c.fetchall()
+        # 지역을 담는 리스트
         area = []
-        # 비율
+        # 비율을 담는 리스트
         percent = []
-        for i in range(1,19):
-
-            h=self.ele[i][0]
-            k=self.ele[i][1]
+        # 지역이 총18개
+        for i in range(1, 19):
+            # 지역
+            h = self.ele[i][0]
+            # 비율
+            k = self.ele[i][1]
             area.append(h)
             percent.append(k)
 
@@ -127,27 +183,33 @@ class check(QMainWindow, form_class):
         for i in range(1, 19):
             indi1 = self.individual[i][1]
             percent_three.append(indi1)
-        plt.rc('font',size=6)
+        plt.rc('font', size=6)
         plt.figure(figsize=(15, 12))
         conv_list1 = list(map(float, percent))
         conv_list2 = list(map(float, percent_two))
         conv_list3 = list(map(float, percent_three))
-        df=pd.DataFrame({'초등학생 비율':conv_list1,'혼인율':conv_list2,'1인가구 비율':conv_list3},index=area)
-        bar_width=0.2
+        # 1개바의 너비
+        bar_width = 0.2
+        # 도시의 수 18개
         index = np.arange(18)
-        b1=plt.bar(index,df['초등학생 비율'], bar_width, alpha=0.4,color='b',label='초등학생 비율')
-        b2=plt.bar(index+bar_width,df['혼인율'],bar_width,alpha=0.4,color='g',label='혼인율')
-        b3=plt.bar(index+2*bar_width,df['1인가구 비율']/4,bar_width,alpha=0.4,color='r',label='1인가구 비율')
 
-        plt.xticks(np.arange(bar_width,len(area)+bar_width,1),area)
-        plt.xlabel('지역',size=10)
+        # 판다에 있는 기능 활용, '초등학생비율, 혼인율, 1인가구' 는 우측상단에 뜨게 됨 , index=area는 지역으로 x축
+        df = pd.DataFrame({'초등학생 비율': conv_list1, '혼인율': conv_list2, '1인가구 비율/4': conv_list3}, index=area)
+        # 바사이의 간격을 설정함
+        b1 = plt.bar(index, df['초등학생 비율'], bar_width, alpha=0.4, color='b', label='초등학생 비율')
+        b2 = plt.bar(index + bar_width, df['혼인율'], bar_width, alpha=0.4, color='g', label='혼인율')
+        b3 = plt.bar(index + 2 * bar_width, df['1인가구 비율/4'] / 4, bar_width, alpha=0.4, color='r', label='1인가구 비율/4')
+
+        plt.xticks(np.arange(bar_width, len(area) + bar_width, 1), area)
+        # x축과 y축에 나타나는 비율
+        plt.xlabel('지역', size=10)
         plt.ylabel('인구수별 비율', size=10)
         plt.legend()
         plt.show()
 
-
-
         plt.show()
+
+    # 검색 기능
     def search(self):
         if type(self.db) == str:
             self.condition1()
@@ -156,6 +218,7 @@ class check(QMainWindow, form_class):
             self.condition2()
             self.multi_search()
 
+    # 1개의 DB를 선택한 조건 으로 쿼리문 선정
     def condition1(self):
         city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
@@ -177,10 +240,12 @@ class check(QMainWindow, form_class):
             self.where = f'where 행정구역별 = "{city}"'
         self.table_header1()
 
+    # 1개의 DB를 선택시 검색 기능
     def single_search(self):
         self.c.execute(f'select {self.header} from {self.db} {self.where};')
         self.table_show()
 
+    # 2,3개의 DB를 선택한 조건 으로 쿼리문 선정
     def condition2(self):
         city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
@@ -216,42 +281,52 @@ class check(QMainWindow, form_class):
                 self.where = f'where {self.db[1]}.행정구역별 = "{city}"'
         self.table_header2()
 
+    # 2,3개의 DB를 선택시 검색 기능
     def multi_search(self):
         self.c.execute(f'select {self.header} from {self.db[0]} {self.join} {self.where};')
         self.table_show()
 
+    # 테이블 위젯에 조건에 의해 출력된 DB 자료 셋팅
     def table_show(self):
-        csv_list = self.c.fetchall()
+        self.csv_list = self.c.fetchall()
         city = self.combo_nation.currentText()
         if city == '선택안함':
-            self.table.setRowCount(len(csv_list) - 1)
-            self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list) - 1):
-                for j in range(len(csv_list[0])):
+            self.table.setRowCount(len(self.csv_list) - 1)
+            self.table.setColumnCount(len(self.csv_list[0]))
+            for i in range(len(self.csv_list) - 1):
+                for j in range(len(self.csv_list[0])):
                     try:
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i + 1][j]): ,}'))
+                        self.table.setItem(i, j, QTableWidgetItem(f'{int(self.csv_list[i + 1][j]): ,}'))
                     except ValueError:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i + 1][j]))
+                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i + 1][j]))
+                    except TypeError:
+                        self.table.setItem(i, j, QTableWidgetItem('-'))
         else:
-            self.table.setRowCount(len(csv_list))
-            self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list)):
-                for j in range(len(csv_list[0])):
+            self.table.setRowCount(len(self.csv_list))
+            self.table.setColumnCount(len(self.csv_list[0]))
+            for i in range(len(self.csv_list)):
+                for j in range(len(self.csv_list[0])):
                     try:
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i][j]): ,}'))
+                        self.table.setItem(i, j, QTableWidgetItem(f'{int(self.csv_list[i + 1][j]): ,}'))
                     except ValueError:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i][j]))
+                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i + 1][j]))
+                    except TypeError:
+                        self.table.setItem(i, j, QTableWidgetItem('-'))
 
-        for i in range(len(csv_list[0])):
+        for i in range(len(self.csv_list[0])):
             try:
                 self.table.setHorizontalHeaderItem(i, QTableWidgetItem(f'{int(self.csv[0][i])}년'))
             except ValueError:
                 self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
+            except TypeError:
+                self.table.setHorizontalHeaderItem(i, QTableWidgetItem('-'))
 
+    # 1개의 DB를 선택시 헤더의 값을 가지고 오기 위한 자료
     def table_header1(self):
         self.c.execute(f'select {self.header} from {self.db};')
         self.csv = self.c.fetchall()
 
+    # 2,3개의 DB를 선택시 헤더의 값을 가지고 오기 위한 자료
     def table_header2(self):
         self.c.execute(f'select {self.header} from {self.db[0]} {self.join};')
         self.csv = self.c.fetchall()
@@ -319,7 +394,7 @@ class check(QMainWindow, form_class):
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
 
-
+    # DB 선택에 의해 변화 하는 쿼리문 및 변수 선정
     def choice_db(self):
         box1 = self.checkBox.isChecked()
         box2 = self.checkBox_2.isChecked()
@@ -391,6 +466,7 @@ class check(QMainWindow, form_class):
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
 
+    # 파이 차트 출력
     def graph(self):
         self.choice_db()
         year = self.combo_year.currentText()
@@ -442,36 +518,42 @@ class check(QMainWindow, form_class):
 
             plt.figure(figsize=(19, 9.5))
             for i in range(len(label_list)):
-                plt.subplot(1, len(label_list), i+1)
+                plt.subplot(1, len(label_list), i + 1)
                 plt.pie(label_list[i], labels=label_city, autopct='%.1f%%', startangle=90,
                         counterclock=False, wedgeprops=wedgeprops)
                 plt.title(f'{self.title[i]} ({year}년)')
             plt.show()
 
     ## 추가한 부분
+    # 선그래프를 나타냄
     def graph2(self):
         self.choice_graphdb()
+        # 지역을 나타내는 콤보박스
         city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
         label_year = list()
         label_people = list()
-        graphlist1=[]
-        graphlist2=[]
-        graphlist3=[]
+        graphlist1 = []
+        graphlist2 = []
+        graphlist3 = []
+        # 지역을 선택안할 시 초기 값을 전국으로 함
         if city == '선택안함':
             city = '전국'
+
         if type(self.db) == str:
             self.c.execute(f'select * from {self.graphdb} where 행정구역별 = "{city}"')
             num_list = self.c.fetchall()
             for i in range(len(num_list[0])):
                 if i != 0:
                     label_people.append(num_list[0][i])
-            x = ['2016년','2017년','2018년','2019년','2020년']
-            plt.plot(x,label_people,'r')
-            plt.title(f'{self.title} ({city})' )
+
+            x = ['2016년', '2017년', '2018년', '2019년', '2020년']
+            plt.plot(x, label_people, 'r')
+            plt.title(f'{self.title} ({city})')
             plt.show()
 
-        elif len(self.graphdb)==2 :
+        elif len(self.graphdb) == 2:
+            # graphdb값 = solo, marry_ratio, elemantary_ratio
             self.header = f'{self.graphdb[0]}.행정구역별, {self.graphdb[0]}.{year}년, {self.graphdb[1]}.{year}년'
             self.join = f'inner join {self.graphdb[1]} AS B on A.행정구역별 = B.행정구역별'
             self.where = f'where A.행정구역별 = "{city}"'
@@ -479,19 +561,19 @@ class check(QMainWindow, form_class):
                             from {self.graphdb[0]} AS A {self.join} {self.where};')
             graphlist = self.c.fetchall()
             for i in range(len(graphlist[0])):
-                if i >=1 and i<6:
+                if i >= 1 and i < 6:
                     graphlist1.append(graphlist[0][i])
-                elif i>=6:
+                elif i >= 6:
                     graphlist2.append(graphlist[0][i])
-            conv_list1 = list(map(float,graphlist1))
-            conv_list2 = list(map(float,graphlist2))
+            conv_list1 = list(map(float, graphlist1))
+            conv_list2 = list(map(float, graphlist2))
 
             x = ['2016년', '2017년', '2018년', '2019년', '2020년']
             fig = plt.figure(figsize=(12, 5))
             ax = fig.add_subplot(111)
-            ax.plot(x, conv_list1,'r',label=f"{self.graphname1}")
-            plt.legend(loc= 'center left')
-            plt.ylim([int(min(conv_list1)-1),int(max(conv_list1)+1)])
+            ax.plot(x, conv_list1, 'r', label=f"{self.graphname1}")
+            plt.legend(loc='center left')
+            plt.ylim([int(min(conv_list1) - 1), int(max(conv_list1) + 1)])
             for i, v in enumerate(x):
                 plt.text(v, conv_list1[i], conv_list1[i],  # 좌표 (x축 = v, y축 = y[0]..y[1], 표시 = y[0]..y[1])
                          fontsize=9,
@@ -499,18 +581,18 @@ class check(QMainWindow, form_class):
                          horizontalalignment='center',  # horizontalalignment (left, center, right)
                          verticalalignment='bottom')  # verticalalignment (top, center, bottom)
             ax2 = ax.twinx()
-            ax2.plot(x,conv_list2,'b',label=f"{self.graphname2}")
-            plt.ylim([int(min(conv_list2)-1),int(max(conv_list2)+1)])
+            ax2.plot(x, conv_list2, 'b', label=f"{self.graphname2}")
+            plt.ylim([int(min(conv_list2) - 1), int(max(conv_list2) + 1)])
             for i, v in enumerate(x):
                 plt.text(v, conv_list2[i], conv_list2[i],  # 좌표 (x축 = v, y축 = y[0]..y[1], 표시 = y[0]..y[1])
                          fontsize=9,
                          color='black',
                          horizontalalignment='center',  # horizontalalignment (left, center, right)
                          verticalalignment='bottom')  # verticalalignment (top, center, bottom)
-            plt.legend(loc= 'right')
+            plt.legend(loc='right')
             plt.title(f"{city}")
             plt.show()
-        else :
+        else:
             self.join = f'inner join {self.graphdb[1]} AS B on A.행정구역별 = B.행정구역별 ' \
                         f'inner join {self.graphdb[2]} AS C on B.행정구역별 = C.행정구역별'
             self.where = f'where A.행정구역별 = "{city}"'
@@ -519,20 +601,20 @@ class check(QMainWindow, form_class):
                             from {self.graphdb[0]} AS A {self.join} {self.where};')
             graphlist = self.c.fetchall()
             for i in range(len(graphlist[0])):
-                if i >=1 and i<6:
+                if i >= 1 and i < 6:
                     graphlist1.append(graphlist[0][i])
-                elif i>=6 and i<11:
+                elif i >= 6 and i < 11:
                     graphlist2.append(graphlist[0][i])
-                elif i>=11:
+                elif i >= 11:
                     graphlist3.append(graphlist[0][i])
-            conv_list1 = list(map(float,graphlist1)) #초등생
-            conv_list2 = list(map(float,graphlist2)) #신혼부부
-            conv_list3 = list(map(float,graphlist3)) #1인가구수
+            conv_list1 = list(map(float, graphlist1))  # 초등생
+            conv_list2 = list(map(float, graphlist2))  # 신혼부부
+            conv_list3 = list(map(float, graphlist3))  # 1인가구수
             x = ['2016년', '2017년', '2018년', '2019년', '2020년']
             fig = plt.figure(figsize=(12, 5))
             ax = fig.add_subplot(111)
 
-            ax.plot(x, conv_list1, 'r',label="초등학생 비율")
+            ax.plot(x, conv_list1, 'r', label="초등학생 비율")
             for i, v in enumerate(x):
                 plt.text(v, conv_list1[i], conv_list1[i],  # 좌표 (x축 = v, y축 = y[0]..y[1], 표시 = y[0]..y[1])
                          fontsize=9,
@@ -540,33 +622,29 @@ class check(QMainWindow, form_class):
                          horizontalalignment='left',  # horizontalalignment (left, center, right)
                          verticalalignment='bottom')  # verticalalignment (top, center, bottom)
 
-            ax.plot(x, conv_list2, 'g',label="신혼부부 비율")
+            ax.plot(x, conv_list2, 'g', label="신혼부부 비율")
             for i, v in enumerate(x):
                 plt.text(v, conv_list2[i], conv_list2[i],  # 좌표 (x축 = v, y축 = y[0]..y[1], 표시 = y[0]..y[1])
                          fontsize=9,
                          color='black',
                          horizontalalignment='center',  # horizontalalignment (left, center, right)
                          verticalalignment='bottom')  # verticalalignment (top, center, bottom)
-            plt.legend(loc = 'center left')
+            plt.legend(loc='center left')
             ax2 = ax.twinx()
-            ax2.plot(x, conv_list3, 'b',label = '1인가구 비율')
-            plt.ylim([int(min(conv_list3)-2), int(max(conv_list3) + 1)])
+            ax2.plot(x, conv_list3, 'b', label='1인가구 비율')
+            plt.ylim([int(min(conv_list3) - 2), int(max(conv_list3) + 1)])
             for i, v in enumerate(x):
                 plt.text(v, conv_list3[i], conv_list3[i],  # 좌표 (x축 = v, y축 = y[0]..y[1], 표시 = y[0]..y[1])
                          fontsize=9,
                          color='magenta',
                          horizontalalignment='right',  # horizontalalignment (left, center, right)
                          verticalalignment='bottom')  # verticalalignment (top, center, bottom)
-            plt.legend(loc = 'right')
+            plt.legend(loc='right')
             plt.title(f"{city}")
             plt.show()
 
 
-
-
-
-if __name__ == "__main__" :
-
+if __name__ == "__main__":
     # QApplication : 프로그램을 실행시켜주는 클래스
     app = QApplication(sys.argv)
 
