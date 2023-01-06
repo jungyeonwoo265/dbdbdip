@@ -179,30 +179,7 @@ class check(QMainWindow, form_class):
 
     def single_search(self):
         self.c.execute(f'select {self.header} from {self.db} {self.where};')
-        self.csv_list = self.c.fetchall()
-        city = self.combo_nation.currentText()
-        if city == '선택안함':
-            self.table.setRowCount(len(self.csv_list) - 1)
-            self.table.setColumnCount(len(self.csv_list[0]))
-            for i in range(len(self.csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv_list[0][i]))
-            for i in range(len(self.csv_list) - 1):
-                for j in range(len(self.csv_list[0])):
-                    if j != 0 and self.db != 'solo' and type(self.csv_list) == str :
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(self.csv_list[i + 1][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i + 1][j]))
-        else:
-            self.table.setRowCount(len(self.csv_list))
-            self.table.setColumnCount(len(self.csv_list[0]))
-            for i in range(len(self.csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
-            for i in range(len(self.csv_list)):
-                for j in range(len(self.csv_list[0])):
-                    if j != 0 and self.db != 'solo' and type(self.csv_list) == str:
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(self.csv_list[i][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i][j]))
+        self.table_show()
 
     def condition2(self):
         city = self.combo_nation.currentText()
@@ -241,34 +218,35 @@ class check(QMainWindow, form_class):
 
     def multi_search(self):
         self.c.execute(f'select {self.header} from {self.db[0]} {self.join} {self.where};')
-        self.csv_list = self.c.fetchall()
+        self.table_show()
+
+    def table_show(self):
+        csv_list = self.c.fetchall()
         city = self.combo_nation.currentText()
         if city == '선택안함':
-            self.table.setRowCount(len(self.csv_list) - 1)
-            self.table.setColumnCount(len(self.csv_list[0]))
-            for i in range(len(self.csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv_list[0][i]))
-            for i in range(len(self.csv_list) - 1):
-                for j in range(len(self.csv_list[0])):
-                    if j == 0:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i + 1][j]))
-                    elif self.db[j-1] != 'solo':
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(self.csv_list[i + 1][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i + 1][j]))
+            self.table.setRowCount(len(csv_list) - 1)
+            self.table.setColumnCount(len(csv_list[0]))
+            for i in range(len(csv_list) - 1):
+                for j in range(len(csv_list[0])):
+                    try:
+                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i + 1][j]): ,}'))
+                    except ValueError:
+                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i + 1][j]))
         else:
-            self.table.setRowCount(len(self.csv_list))
-            self.table.setColumnCount(len(self.csv_list[0]))
-            for i in range(len(self.csv_list[0])):
+            self.table.setRowCount(len(csv_list))
+            self.table.setColumnCount(len(csv_list[0]))
+            for i in range(len(csv_list)):
+                for j in range(len(csv_list[0])):
+                    try:
+                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i][j]): ,}'))
+                    except ValueError:
+                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i][j]))
+
+        for i in range(len(csv_list[0])):
+            try:
+                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(f'{int(self.csv[0][i])}년'))
+            except ValueError:
                 self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
-            for i in range(len(self.csv_list)):
-                for j in range(len(self.csv_list[0])):
-                    if j == 0:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i][j]))
-                    elif self.db[j-1] != 'solo':
-                        self.table.setItem(i, j, QTableWidgetItem(f'{float(self.csv_list[i][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(self.csv_list[i][j]))
 
     def table_header1(self):
         self.c.execute(f'select {self.header} from {self.db};')
