@@ -16,7 +16,7 @@
   <widget class="QTableWidget" name="table">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>120</x>
      <y>340</y>
      <width>791</width>
      <height>471</height>
@@ -26,7 +26,7 @@
   <widget class="QPushButton" name="research_btn">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>760</x>
      <y>270</y>
      <width>91</width>
      <height>31</height>
@@ -39,7 +39,7 @@
   <widget class="QComboBox" name="combo_year">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>140</x>
      <y>270</y>
      <width>111</width>
      <height>31</height>
@@ -79,7 +79,7 @@
   <widget class="QComboBox" name="combo_nation">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>140</x>
      <y>220</y>
      <width>111</width>
      <height>31</height>
@@ -184,7 +184,7 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>60</x>
      <y>230</y>
      <width>56</width>
      <height>12</height>
@@ -197,7 +197,7 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>60</x>
      <y>280</y>
      <width>56</width>
      <height>12</height>
@@ -207,17 +207,17 @@
     <string>연도검색</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_graph">
+  <widget class="QPushButton" name="add_btn">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>170</y>
+     <x>760</x>
+     <y>190</y>
      <width>91</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>파이 차트</string>
+    <string>추가</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
@@ -252,9 +252,9 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>775</x>
      <y>310</y>
-     <width>121</width>
+     <width>131</width>
      <height>20</height>
     </rect>
    </property>
@@ -291,24 +291,60 @@
     <string>혼인건수</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_modify">
+  <widget class="QLineEdit" name="liner">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>300</x>
+     <y>270</y>
+     <width>401</width>
+     <height>31</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="back_btn">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
      <y>230</y>
      <width>91</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>수정</string>
+    <string>되돌리기</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="delete_btn">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>150</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>삭제</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_graph">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>220</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>파이 차트</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_graph_line">
    <property name="geometry">
     <rect>
      <x>460</x>
-     <y>170</y>
+     <y>220</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -317,40 +353,17 @@
     <string>선그래프</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="liner">
+  <widget class="QPushButton" name="stick_btn">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>230</y>
-     <width>450</width>
-     <height>30</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="add_btn">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>190</y>
+     <x>610</x>
+     <y>220</y>
      <width>91</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>추가</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_delete">
-   <property name="geometry">
-    <rect>
-     <x>800</x>
-     <y>150</y>
-     <width>91</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>삭제</string>
+    <string>막대그래프</string>
    </property>
   </widget>
  </widget>
