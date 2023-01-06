@@ -11,7 +11,8 @@ class WindowClass(QMainWindow, form_class):
         super().__init__()
         self.setupUi(self)
         # DB 연결
-        db = p.connect(host='127.0.0.1', port=3306, user='root', password='0000', db='3team', charset='utf8')
+        db = p.connect(host='localhost', port=3306, user='root', password='1234',
+                         db='pro', charset='utf8')
         self.c = db.cursor()
 
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
