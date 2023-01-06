@@ -21,7 +21,7 @@ class WindowClass(QMainWindow, form_class):
         font = font_manager.FontProperties(fname=font_path).get_name()
         rc('font', family=font)
 
-        # 테이블 위젯 수정불가및 헤드 자동 길이 맞춤
+        # 테이블 위젯 수정 불가및 헤드 자동 길이 맞춤
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.변수 초기화 및 선언
@@ -32,7 +32,7 @@ class WindowClass(QMainWindow, form_class):
         self.join = ''
         self.title = self.checkBox.text()
 
-        # 메서드와 시그널 연결
+        # 메서드 와 시그널 연결
         self.research_btn.clicked.connect(self.search)
         self.checkBox.stateChanged.connect(self.choice_db)
         self.checkBox_2.stateChanged.connect(self.choice_db)
@@ -70,39 +70,17 @@ class WindowClass(QMainWindow, form_class):
             self.where = f'where 행정구역별 = "{city}"'
         self.table_header1()
 
-    # 1개의 DB를 검색 할때 DB의 내용을 불러와
+    # 1개의 DB를 검색 할때 DB의 내용을 불러와 테이블 위젯에 보여 주기
     def single_search(self):
         self.c.execute(f'select {self.header} from {self.db} {self.where};')
-        csv_list = self.c.fetchall()
-        city = self.combo_nation.currentText()
-        if city == '선택안함':
-            self.table.setRowCount(len(csv_list) - 1)
-            self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(csv_list[0][i]))
-            for i in range(len(csv_list) - 1):
-                for j in range(len(csv_list[0])):
-                    if j != 0 and self.db != 'solo':
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i + 1][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i + 1][j]))
-        else:
-            self.table.setRowCount(len(csv_list))
-            self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
-            for i in range(len(csv_list)):
-                for j in range(len(csv_list[0])):
-                    if j != 0 and self.db != 'solo':
-                        self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i][j]): ,}'))
-                    else:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i][j]))
+        self.table_show()
 
+    # 2개, 3개의 DB 자료를 검색 할때 조건에 따른 SQL 문법 조건 셋팅
     def condition2(self):
         city = self.combo_nation.currentText()
         year = self.combo_year.currentText()
         # 2개
-        # select / a.행정구역별, a.2016년, b.2016년 / from elementary as a
+        # select / a.행정구역별, a.2016년, b.2016년 / from / elementary as a
         # / inner join new_marry as b on a.행정구역별 = b.행정구역별 / where a.행정구역별 ='경기도';
 
         if len(self.db) == 2:
@@ -116,7 +94,7 @@ class WindowClass(QMainWindow, form_class):
                 self.where = f'where {self.db[1]}.행정구역별 = "{city}"'
 
         # 3개
-        # select / a.행정구역별, a.2016년, b.2016년, c.2016년 / from elementary as a
+        # select / a.행정구역별, a.2016년, b.2016년, c.2016년 / from / elementary as a
         # / inner join new_marry as b on a.행정구역별 = b.행정구역별
         # inner join solo as c on b.행정구역별 = c.행정구역별 / where a.행정구역별 ='경기도';
 
@@ -133,45 +111,51 @@ class WindowClass(QMainWindow, form_class):
                 self.where = f'where {self.db[1]}.행정구역별 = "{city}"'
         self.table_header2()
 
+    # 2,3개의 DB를 검색 할때 DB의 내용을 불러와 테이블 위젯에 보여 주기
     def multi_search(self):
         self.c.execute(f'select {self.header} from {self.db[0]} {self.join} {self.where};')
+        self.table_show()
+
+    # 불러온 DB의 내용을 테이블 위젯에 보여 주기
+    def table_show(self):
         csv_list = self.c.fetchall()
         city = self.combo_nation.currentText()
         if city == '선택안함':
             self.table.setRowCount(len(csv_list) - 1)
             self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(csv_list[0][i]))
             for i in range(len(csv_list) - 1):
                 for j in range(len(csv_list[0])):
-                    if j == 0:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i + 1][j]))
-                    elif self.db[j-1] != 'solo':
+                    try:
                         self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i + 1][j]): ,}'))
-                    else:
+                    except ValueError:
                         self.table.setItem(i, j, QTableWidgetItem(csv_list[i + 1][j]))
         else:
             self.table.setRowCount(len(csv_list))
             self.table.setColumnCount(len(csv_list[0]))
-            for i in range(len(csv_list[0])):
-                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
             for i in range(len(csv_list)):
                 for j in range(len(csv_list[0])):
-                    if j == 0:
-                        self.table.setItem(i, j, QTableWidgetItem(csv_list[i][j]))
-                    elif self.db[j-1] != 'solo':
+                    try:
                         self.table.setItem(i, j, QTableWidgetItem(f'{int(csv_list[i][j]): ,}'))
-                    else:
+                    except ValueError:
                         self.table.setItem(i, j, QTableWidgetItem(csv_list[i][j]))
 
+        for i in range(len(csv_list[0])):
+            try:
+                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(f'{int(self.csv[0][i])}년'))
+            except ValueError:
+                self.table.setHorizontalHeaderItem(i, QTableWidgetItem(self.csv[0][i]))
+
+    # 1개의 DB 자료 에서 조건에 맏는 header 값를 받기 위한 자료
     def table_header1(self):
         self.c.execute(f'select {self.header} from {self.db};')
         self.csv = self.c.fetchall()
 
+    # 2,3개의 DB 자료 에서 조건에 맏는 header 값를 받기 위한 자료
     def table_header2(self):
         self.c.execute(f'select {self.header} from {self.db[0]} {self.join};')
         self.csv = self.c.fetchall()
 
+    # 1,2,3개의 DB를 선택 하는 조건 에서 자료를 받기 위한 변수 선언
     def choice_db(self):
         box1 = self.checkBox.isChecked()
         box2 = self.checkBox_2.isChecked()
@@ -243,6 +227,7 @@ class WindowClass(QMainWindow, form_class):
             if self.combo_year.itemText(0) != '선택안함':
                 self.combo_year.insertItem(0, '선택안함')
 
+    # 파이 차트 보여 주기
     def graph(self):
         self.choice_db()
         year = self.combo_year.currentText()
@@ -250,7 +235,7 @@ class WindowClass(QMainWindow, form_class):
         label_value = list()
         label_value2 = list()
         label_value3 = list()
-        wedgeprops = {'width': 0.7, 'edgecolor': 'w', 'linewidth': 2}
+        graph_style = {'width': 0.7, 'edgecolor': 'w', 'linewidth': 2}
         if type(self.db) == str:
             if year == '선택안함':
                 year = 2016
@@ -265,7 +250,7 @@ class WindowClass(QMainWindow, form_class):
                 if i > 1:
                     label_value.append(num_list[i][1])
             plt.pie(label_value, labels=label_city, autopct='%.1f%%', startangle=90,
-                    counterclock=False, wedgeprops=wedgeprops)
+                    counterclock=False, wedgeprops=graph_style)
             plt.title(f'{self.title} ({year}년)')
             plt.show()
 
@@ -296,7 +281,7 @@ class WindowClass(QMainWindow, form_class):
             for i in range(len(label_list)):
                 plt.subplot(1, len(label_list), i+1)
                 plt.pie(label_list[i], labels=label_city, autopct='%.1f%%', startangle=90,
-                        counterclock=False, wedgeprops=wedgeprops)
+                        counterclock=False, wedgeprops=graph_style)
                 plt.title(f'{self.title[i]} ({year}년)')
             plt.show()
 
